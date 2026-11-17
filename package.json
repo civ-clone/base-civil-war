@@ -1,0 +1,13 @@
+{
+  "name": "@civ-clone/base-civil-war",
+  "version": "0.0.0",
+  "description": "A civil war for a rule set to use: when its rules say so, a civilization splits, and a new one takes some of its cities, their units and what it knows.",
+  "repository": "git@github.com:civ-clone/base-civil-war.git",
+  "keywords": [
+    "typescript",
+    "civilization"
+  ],
+  "author": "dom111 <dom111@users.noreply.github.com>",
+  "license": "MIT",
+  "private": false
+}
