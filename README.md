@@ -20,16 +20,19 @@ The rule set decides when and which cities; this package does the split. It regi
 - `breaksOut(city, captor, loser, ruleRegistry)`: the `CivilWar` rules' answer.
 - `rebelCities(loser, lost, ruleRegistry)`: the `RebelCities` rules' cities, leaving out `lost`, destroyed cities and
   any no longer the loser's.
-- `rebelUnits(game, loser, cities)`: the units that go, and where each is homed. All of the loser's units on a square
-  with a rebel city go; on a square with no city, all of them go if any is homed in a rebel city. A unit keeps a rebel
-  home; one homed elsewhere is rehomed with the city that took it; one with no home keeps none.
+- `splitUnits(game, loser, cities)`: what happens to the loser's units, as the original moves them. In the unit
+  registry's order, each unit not yet settled is decided by the city on its square or, with none there, by its home
+  city. A rebel city sends its whole stack (the loser's units on that square) to the rebels; one of the loser's other
+  cities keeps it. Any unit in the stack homed on the other side is rehomed in the deciding city, so a home is always
+  its owner's: off a city, the first unit with a home decides. It lists the units that go, and those that stay but
+  are rehomed.
 - `civilWar(game, loser, lost, { heldOff, civilization, leader })`: the split, in this order:
   1. nothing happens (`null`) with no civilization left for the rebels, or no city for them;
   2. the rebels join as a new player (`base-game-end`'s `addPlayerHoldingOff`, the `heldOff` rules off meanwhile);
   3. they know everything the loser knows;
   4. their cities change hands as they are (`City#transfer`): no `Captured` rule runs, so each keeps its buildings,
      production and people;
-  5. their units change hands (`Unit#transfer`);
+  5. their units change hands (`Unit#transfer`), and units left homed in a rebel city are rehomed (`splitUnits`);
   6. the `Seceded` rules run;
   7. `player:civil-war` is emitted with the loser, the rebels and their cities.
 

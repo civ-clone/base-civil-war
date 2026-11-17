@@ -31,17 +31,23 @@ export declare const rebelCities: (
   lost: City,
   ruleRegistry: RuleRegistry
 ) => City[];
+/** A unit the split changes: whether it goes to the rebels, and the city it is homed in after (or `null`). */
+export type SplitUnit = [unit: Unit, toRebels: boolean, home: City | null];
 /**
- * The units that go with the rebels' cities, and the city each is to be homed in (or `null`), as the original moves
- * them: all of the loser's units on a square with a rebel city go; on a square with no city, all of them go if any is
- * homed in a rebel city. A unit homed in a rebel city keeps it; one homed elsewhere is rehomed in the city that took
- * it, or in its stack's first rebel home; one with no home keeps none.
+ * What happens to the loser's units, as the original moves them. In `units.getByPlayer` order, each unit not yet
+ * settled is decided by the city on its square or, with none there, by its home city (a unit with neither is left as
+ * it is). If that city is a rebel city, the unit's whole stack (the loser's units on its square) goes to the rebels;
+ * if it is one of the loser's other cities, the stack stays. Either way, a unit in the stack homed in a city of the
+ * other side is rehomed in the deciding city, so every home stays its owner's. So the first unit of a stack at large
+ * with a home decides for the stack.
+ *
+ * Only the units that change are listed: those that go, and those that stay but are rehomed.
  */
-export declare const rebelUnits: (
+export declare const splitUnits: (
   game: Pick<CivilWarGame, 'cities' | 'units'>,
   loser: Player,
   cities: City[]
-) => [Unit, City | null][];
+) => SplitUnit[];
 /**
  * A civil war: `loser` splits, and a new civilization of rebels takes the cities the `RebelCities` rules choose, for a
  * ruleset's `Captured` rule to call when `breaksOut` says so. In order:
@@ -51,7 +57,8 @@ export declare const rebelUnits: (
  * 3. they know everything `loser` knows;
  * 4. their cities change hands as they are (`City#transfer`): no `Captured` rule runs, so each keeps its buildings,
  *    its production and its people;
- * 5. the units that go with them change hands (`Unit#transfer`, `rebelUnits`);
+ * 5. the units that go with them change hands (`Unit#transfer`), and any left homed on the wrong side are rehomed
+ *    (`splitUnits`);
  * 6. the `Seceded` rules run, for the ruleset's share of the rest;
  * 7. `player:civil-war` is emitted, with `loser`, the rebels and their cities.
  */

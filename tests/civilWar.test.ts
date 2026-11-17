@@ -215,7 +215,42 @@ describe('civilWar', (): void => {
       'Far',
       null,
     ]);
+    // Standing in a loyal city, it stays, and is rehomed there: a home is always its owner's.
+    expect(homes([homedFarInLoyal, homedLoyalAway])).eql(['Loyal', 'Loyal']);
     expect(game.units.getByPlayer(rebels).length).equal(4);
+  });
+
+  it('lets the first unit with a home decide for a stack off a city, in registry order', async (): Promise<void> => {
+    const { captor, city, game, loser, unit } = await setUp(),
+      capital = city('Capital', 0, 0),
+      loyal = city('Loyal', 4, 0),
+      far = city('Far', 8, 0),
+      // Square (5, 5): no home first, then a loyal home, which decides; the rebel-homed unit stays and is rehomed.
+      homelessFirst = unit(null, 5, 5),
+      loyalFirst = unit(loyal, 5, 5),
+      farSecond = unit(far, 5, 5),
+      // Square (6, 7): a rebel home first, which decides; the loyal-homed unit goes and is rehomed in Far.
+      farFirst = unit(far, 6, 7),
+      loyalSecond = unit(loyal, 6, 7);
+
+    capital.capture(captor);
+    game.rules.register(new RebelCities(new Effect((): City[] => [far])));
+
+    const rebels = civilWar(game, loser, capital)!,
+      state = (units: Unit[]) =>
+        units.map(
+          (unit) =>
+            `${unit.player() === rebels ? 'rebels' : 'loser'} ${
+              (unit.city() as City | null)?.name() ?? '-'
+            }`
+        );
+
+    expect(state([homelessFirst, loyalFirst, farSecond])).eql([
+      'loser -',
+      'loser Loyal',
+      'loser Loyal',
+    ]);
+    expect(state([farFirst, loyalSecond])).eql(['rebels Far', 'rebels Far']);
   });
 
   it('does nothing with no civilization left for the rebels, or no city for them', async (): Promise<void> => {
